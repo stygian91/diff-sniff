@@ -1,4 +1,5 @@
 // external dependencies:
+const fs = require('fs');
 const getStdin = require('get-stdin');
 const ArgumentParser = require('argparse').ArgumentParser;
 
@@ -20,11 +21,23 @@ argParser.addArgument(
     }
 );
 
+argParser.addArgument(
+    [ '-i', '--input' ],
+    {
+        help: 'Use input diff file. If not present uses STDIN.',
+        required: false,
+    }
+);
+
 const args = argParser.parseArgs();
 
-getStdin()
-    .then(str => {
-        const parser = new Parser(str);
-        parser.search(args.search);
-    })
-    .catch(error => console.error(error));
+if (args.input) {
+    const input = fs.readFileSync(args.input, { encoding: 'utf8' });
+    new Parser(input).search(args.search);
+} else {
+    getStdin()
+        .then(input => {
+            new Parser(input).search(args.search);
+        })
+        .catch(error => console.error(error));
+}
